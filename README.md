@@ -28,11 +28,14 @@ var inspect = require('util').inspect,
 
 var Dicer = require('dicer');
 
-var RE_BOUNDARY = /^multipart\/form-data.*?(?:; boundary=(?:(?:"(.+)")|(?:([^\s]+))))$/i;
+var RE_BOUNDARY = /^multipart\/.+?(?:; boundary=(?:(?:"(.+)")|(?:([^\s]+))))$/i;
 
 http.createServer(function(req, res) {
   var m;
-  if (req.header['content-type'] && (m = RE_BOUNDARY.exec(req.header['content-type']))) {
+  console.dir(req.headers['content-type']);
+  if (req.method === 'POST'
+      && req.headers['content-type']
+      && (m = RE_BOUNDARY.exec(req.headers['content-type']))) {
     var d = new Dicer({ boundary: m[1] || m[2] });
 
     d.on('part', function(p) {
