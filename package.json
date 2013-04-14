@@ -6,6 +6,9 @@
   "dependencies": {
     "streamsearch": "0.1.1"
   },
+  "scripts": {
+    "test": "node test/test.js"
+  },
   "engines": { "node": ">=0.8.0" },
   "keywords": [ "parser", "parse", "parsing", "multipart", "form-data", "streaming" ],
   "licenses": [ { "type": "MIT", "url": "http://github.com/mscdex/dicer/raw/master/LICENSE" } ],
