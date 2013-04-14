@@ -7,7 +7,13 @@ var assert = require('assert'),
     boundary: 'AaB03x',
     chsize: 32,
     nparts: 2,
-    what: '2-part, one nested'
+    what: 'One nested multipart'
+  },
+  { source: 'many',
+    boundary: '----WebKitFormBoundaryWLHCs9qmcJJoyjKR',
+    chsize: 16,
+    nparts: 7,
+    what: 'Many parts'
   },
 ].forEach(function(v) {
   var fd = fs.openSync('fixtures/' + v.source, 'r'), n = 0,
@@ -55,8 +61,11 @@ var assert = require('assert'),
 
   assert(state.done, errPrefix + 'Parser did not finish');
   assert.equal(state.parts.length, v.nparts, errPrefix + 'Part count mismatch. Actual: ' + state.parts.length + '. Expected: ' + v.nparts);
-  for (var i = 0, header; i < v.nparts; ++i) {
-    assert.deepEqual(fs.readFileSync('fixtures/' + v.source + '.part' + (i+1)), state.parts[i].body, errPrefix + 'Part #' + (i+1) + ' body mismatch');
+  for (var i = 0, header, body; i < v.nparts; ++i) {
+    body = fs.readFileSync('fixtures/' + v.source + '.part' + (i+1));
+    if (body.length === 0)
+      body = undefined;
+    assert.deepEqual(state.parts[i].body, body, errPrefix + 'Part #' + (i+1) + ' body mismatch');
     header = undefined;
     try {
       header = fs.readFileSync('fixtures/' + v.source + '.part' + (i+1) + '.header', 'binary');
