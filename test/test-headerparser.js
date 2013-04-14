@@ -30,7 +30,7 @@ var DCRLF = '\r\n\r\n';
   var parser = new HeaderParser(), fired = false;
   var errPrefix = '[' + v.what + ']: ';
   parser.on('header', function(header) {
-    assert(!fired, errPrefix + 'Header event fired more than once')
+    assert(!fired, errPrefix + 'Header event fired more than once');
     fired = true;
     assert.deepEqual(header, v.expected, errPrefix + 'Parsed result mismatch');
   });
