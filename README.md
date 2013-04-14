@@ -32,7 +32,6 @@ var RE_BOUNDARY = /^multipart\/.+?(?:; boundary=(?:(?:"(.+)")|(?:([^\s]+))))$/i;
 
 http.createServer(function(req, res) {
   var m;
-  console.dir(req.headers['content-type']);
   if (req.method === 'POST'
       && req.headers['content-type']
       && (m = RE_BOUNDARY.exec(req.headers['content-type']))) {
