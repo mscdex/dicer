@@ -3,10 +3,15 @@ var assert = require('assert'),
     fs = require('fs');
 
 [
-  { source: 'nested', boundary: 'AaB03x', chsize: 32, nparts: 2 },
-].forEach(function(v, t) {
+  { source: 'nested',
+    boundary: 'AaB03x',
+    chsize: 32,
+    nparts: 2,
+    what: '2-part, one nested'
+  },
+].forEach(function(v) {
   var fd = fs.openSync('fixtures/' + v.source, 'r'), n = 0,
-      errPrefix = 'Test #' + (t+1) + ': ',
+      errPrefix = '[' + v.what + ']: ',
       buffer = new Buffer(v.chsize),
       state = { done: false, parts: [] },
       part = { body: undefined, bodylen: 0, header: undefined };
@@ -57,6 +62,6 @@ var assert = require('assert'),
       header = fs.readFileSync('fixtures/' + v.source + '.part' + (i+1) + '.header', 'binary');
       header = JSON.parse(header);
     } catch (err) {}
-    assert.deepEqual(state.parts[i].header, header, errPrefix + 'Part #' + (i+1) + ' header mismatch:\n' + JSON.stringify(state.parts[i].header) + '\n' + JSON.stringify(header));
+    assert.deepEqual(state.parts[i].header, header, errPrefix + 'Part #' + (i+1) + ' parsed header mismatch');
   }
 });
