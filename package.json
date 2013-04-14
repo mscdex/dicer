@@ -4,7 +4,7 @@
   "description": "A very fast streaming multipart parser for node.js",
   "main": "./lib/Dicer",
   "dependencies": {
-    "streamsearch": "*"
+    "streamsearch": "0.1.1"
   },
   "engines": { "node": ">=0.8.0" },
   "keywords": [ "parser", "parse", "parsing", "multipart", "form-data", "streaming" ],
