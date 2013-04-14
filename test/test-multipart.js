@@ -2,6 +2,8 @@ var Dicer = require('..');
 var assert = require('assert'),
     fs = require('fs');
 
+var FIXTURES_ROOT = __dirname + '/fixtures/';
+
 [
   { source: 'nested',
     boundary: 'AaB03x',
@@ -16,7 +18,7 @@ var assert = require('assert'),
     what: 'Many parts'
   },
 ].forEach(function(v) {
-  var fd = fs.openSync('fixtures/' + v.source + '/original', 'r'), n = 0,
+  var fd = fs.openSync(FIXTURES_ROOT + v.source + '/original', 'r'), n = 0,
       errPrefix = '[' + v.what + ']: ',
       buffer = new Buffer(v.chsize),
       state = { done: false, parts: [] },
@@ -60,17 +62,22 @@ var assert = require('assert'),
   fs.closeSync(fd);
 
   assert(state.done, errPrefix + 'Parser did not finish');
-  assert.equal(state.parts.length, v.nparts, errPrefix + 'Part count mismatch. Actual: ' + state.parts.length + '. Expected: ' + v.nparts);
+  assert.equal(state.parts.length, v.nparts,
+               errPrefix + 'Part count mismatch. Actual: ' + state.parts.length
+               + '. Expected: ' + v.nparts);
   for (var i = 0, header, body; i < v.nparts; ++i) {
-    body = fs.readFileSync('fixtures/' + v.source + '/part' + (i+1));
+    body = fs.readFileSync(FIXTURES_ROOT + v.source + '/part' + (i+1));
     if (body.length === 0)
       body = undefined;
-    assert.deepEqual(state.parts[i].body, body, errPrefix + 'Part #' + (i+1) + ' body mismatch');
+    assert.deepEqual(state.parts[i].body, body,
+                     errPrefix + 'Part #' + (i+1) + ' body mismatch');
     header = undefined;
     try {
-      header = fs.readFileSync('fixtures/' + v.source + '/part' + (i+1) + '.header', 'binary');
+      header = fs.readFileSync(FIXTURES_ROOT + v.source
+                               + '/part' + (i+1) + '.header', 'binary');
       header = JSON.parse(header);
     } catch (err) {}
-    assert.deepEqual(state.parts[i].header, header, errPrefix + 'Part #' + (i+1) + ' parsed header mismatch');
+    assert.deepEqual(state.parts[i].header, header,
+                     errPrefix + 'Part #' + (i+1) + ' parsed header mismatch');
   }
 });
