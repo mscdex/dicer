@@ -1,7 +1,7 @@
 var assert = require('assert'),
     HeaderParser = require('../lib/HeaderParser');
 
-var parser, fired, DCRLF = '\r\n\r\n';
+var DCRLF = '\r\n\r\n';
 
 [
   { source: DCRLF,
@@ -27,8 +27,7 @@ var parser, fired, DCRLF = '\r\n\r\n';
     what: 'Empty values'
   },
 ].forEach(function(v) {
-  parser = new HeaderParser();
-  fired = false;
+  var parser = new HeaderParser(), fired = false;
   var errPrefix = '[' + v.what + ']: ';
   parser.on('header', function(header) {
     assert(!fired, errPrefix + 'Header event fired more than once')
@@ -37,5 +36,4 @@ var parser, fired, DCRLF = '\r\n\r\n';
   });
   parser.push(v.source);
   assert(fired, errPrefix + 'Did not receive header from parser');
-  fired = false;
 });
