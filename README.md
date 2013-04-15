@@ -78,9 +78,9 @@ Dicer (special) events
 
 * **part**(< _PartStream_ >stream) - Emitted when a new part has been found.
 
-* **preamble**(< _ReadableStream_ >stream) - Emitted for preamble data if you should happen to need it (this should almost always be ignored though).
+* **preamble**(< _PartStream_ >stream) - Emitted for preamble if you should happen to need it (can usually be ignored).
 
-* **trailer**(< _Buffer_ >data) - Emitted when trailing data was found after the terminating boundary (as with the preamble, this should be ignored too).
+* **trailer**(< _Buffer_ >data) - Emitted when trailing data was found after the terminating boundary (as with the preamble, this can usually be ignored too).
 
 
 Dicer methods
@@ -90,7 +90,9 @@ Dicer methods
 
     * **boundary** - _string_ - This is the boundary used to detect the beginning of a new part.
 
-* **reset**() - _(void)_ - Resets internal state.
+    * **headerFirst** - _boolean_ - If true, preamble header parsing will be performed first.
+
+* **setBoundary**(< _string_ >boundary) - _(void)_ - Sets the boundary to use for parsing and performs some initialization needed for parsing. You should only need to use this if you set `headerFirst` to true in the constructor and are parsing the boundary from the preamble header.
 
 
 
@@ -99,4 +101,4 @@ _PartStream_ is a _ReadableStream_
 PartStream (special) events
 ---------------------------
 
-* **header**(< _object_ >header) - An object containing the header for this particular part. Each property value is an _array_ of one or more header values.
+* **header**(< _object_ >header) - An object containing the header for this particular part. Each property value is an _array_ of one or more string values.
