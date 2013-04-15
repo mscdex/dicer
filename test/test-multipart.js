@@ -1,30 +1,55 @@
 var Dicer = require('..');
 var assert = require('assert'),
-    fs = require('fs');
+    fs = require('fs'),
+    inspect = require('util').inspect;
 
 var FIXTURES_ROOT = __dirname + '/fixtures/';
 
 [
   { source: 'nested',
-    boundary: 'AaB03x',
+    opts: { boundary: 'AaB03x' },
     chsize: 32,
     nparts: 2,
     what: 'One nested multipart'
   },
   { source: 'many',
-    boundary: '----WebKitFormBoundaryWLHCs9qmcJJoyjKR',
+    opts: { boundary: '----WebKitFormBoundaryWLHCs9qmcJJoyjKR' },
     chsize: 16,
     nparts: 7,
     what: 'Many parts'
   },
 ].forEach(function(v) {
-  var fd = fs.openSync(FIXTURES_ROOT + v.source + '/original', 'r'), n = 0,
+  var fd, n = 0, buffer = new Buffer(v.chsize),
       errPrefix = '[' + v.what + ']: ',
-      buffer = new Buffer(v.chsize),
-      state = { done: false, parts: [] },
+      state = { done: false, parts: [], preamble: undefined },
       part = { body: undefined, bodylen: 0, header: undefined };
 
-  var dicer = new Dicer({ boundary: v.boundary });
+  fd = fs.openSync(FIXTURES_ROOT + v.source + '/original', 'r')
+
+  var dicer = new Dicer(v.opts);
+  dicer.on('preamble', function(p) {
+    var preamble = { body: undefined, bodylen: 0, header: undefined };
+    p.on('header', function(h) {
+      preamble.header = h;
+    });
+    p.on('data', function(data) {
+      // make a copy because we are using readSync which re-uses a buffer ...
+      var copy = new Buffer(data.length);
+      data.copy(copy);
+      data = copy;
+      if (!preamble.body)
+        preamble.body = [ data ];
+      else
+        preamble.body.push(data);
+      preamble.bodylen += data.length;
+    });
+    p.on('end', function() {
+      if (part.body)
+        part.body = Buffer.concat(part.body, part.bodylen);
+      if (part.body || preamble.header)
+        state.preamble = preamble;
+    });
+  });
   dicer.on('part', function(p) {
     p.on('header', function(h) {
       part.header = h;
@@ -62,9 +87,39 @@ var FIXTURES_ROOT = __dirname + '/fixtures/';
   fs.closeSync(fd);
 
   assert(state.done, errPrefix + 'Parser did not finish');
+
+  var preamble = undefined;
+  if (fs.existsSync(FIXTURES_ROOT + v.source + '/preamble')) {
+    var prebody = fs.readFileSync(FIXTURES_ROOT + v.source + '/preamble');
+    if (prebody.length) {
+      preamble = {
+        body: prebody,
+        bodylen: prebody.length,
+        header: undefined
+      };
+    }
+  }
+  if (fs.existsSync(FIXTURES_ROOT + v.source + '/preamble.header')) {
+
+    var prehead = JSON.parse(fs.readFileSync(FIXTURES_ROOT + v.source
+                                             + '/preamble.header', 'binary'));
+    if (!preamble) {
+      preamble = {
+        body: undefined,
+        bodylen: 0,
+        header: prehead
+      };
+    }
+  }
+
+  assert.deepEqual(state.preamble, preamble, errPrefix
+                   + 'Preamble mismatch:\nActual:' + inspect(state.preamble)
+                   + '\nExpected: ' + inspect(preamble));
+
   assert.equal(state.parts.length, v.nparts,
-               errPrefix + 'Part count mismatch. Actual: ' + state.parts.length
-               + '. Expected: ' + v.nparts);
+               errPrefix + 'Part count mismatch:\nActual: ' + state.parts.length
+               + '\nExpected: ' + v.nparts);
+
   for (var i = 0, header, body; i < v.nparts; ++i) {
     body = fs.readFileSync(FIXTURES_ROOT + v.source + '/part' + (i+1));
     if (body.length === 0)
@@ -72,12 +127,15 @@ var FIXTURES_ROOT = __dirname + '/fixtures/';
     assert.deepEqual(state.parts[i].body, body,
                      errPrefix + 'Part #' + (i+1) + ' body mismatch');
     header = undefined;
-    try {
+    if (fs.existsSync(FIXTURES_ROOT + v.source + '/part' + (i+1) + '.header')) {
       header = fs.readFileSync(FIXTURES_ROOT + v.source
                                + '/part' + (i+1) + '.header', 'binary');
       header = JSON.parse(header);
-    } catch (err) {}
+    }
     assert.deepEqual(state.parts[i].header, header,
-                     errPrefix + 'Part #' + (i+1) + ' parsed header mismatch');
+                     errPrefix + 'Part #' + (i+1)
+                     + ' parsed header mismatch:\nActual: '
+                     + inspect(state.parts[i].header)
+                     + '\nExpected: ' + inspect(header));
   }
 });
