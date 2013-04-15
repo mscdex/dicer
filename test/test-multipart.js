@@ -18,6 +18,12 @@ var FIXTURES_ROOT = __dirname + '/fixtures/';
     nparts: 7,
     what: 'Many parts'
   },
+  { source: 'nested-full',
+    opts: { boundary: 'AaB03x', headerFirst: true },
+    chsize: 32,
+    nparts: 2,
+    what: 'One nested multipart with preceding header'
+  },
 ].forEach(function(v) {
   var fd, n = 0, buffer = new Buffer(v.chsize),
       errPrefix = '[' + v.what + ']: ',
