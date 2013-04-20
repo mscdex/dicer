@@ -28,7 +28,16 @@ var inspect = require('util').inspect,
 
 var Dicer = require('dicer');
 
-var RE_BOUNDARY = /^multipart\/.+?(?:; boundary=(?:(?:"(.+)")|(?:([^\s]+))))$/i;
+    // quick and dirty way to parse multipart boundary
+var RE_BOUNDARY = /^multipart\/.+?(?:; boundary=(?:(?:"(.+)")|(?:([^\s]+))))$/i,
+    HTML = new Buffer('<html><head></head><body>\
+                       <form method="POST" enctype="multipart/form-data">\
+                         <input type="text" name="textfield"><br />\
+                         <input type="file" name="filefield"><br />\
+                         <input type="submit">\
+                       </form>\
+                       </body></html>'),
+    PORT = 8080;
 
 http.createServer(function(req, res) {
   var m;
@@ -40,8 +49,10 @@ http.createServer(function(req, res) {
     d.on('part', function(p) {
       console.log('New part!');
       p.on('header', function(header) {
-        for (var h in header)
-          console.log('Part header: k: ' + inspect(h) + ', v: ' + inspect(header[h]));
+        for (var h in header) {
+          console.log('Part header: k: ' + inspect(h)
+                      + ', v: ' + inspect(header[h]));
+        }
       });
       p.on('data', function(data) {
         console.log('Part data: ' + inspect(data.toString()));
@@ -56,12 +67,15 @@ http.createServer(function(req, res) {
       res.end();
     });
     req.pipe(d);
+  } else if (req.method === 'GET' && req.url === '/') {
+    res.writeHead(200);
+    res.end(HTML);
   } else {
     res.writeHead(404);
     res.end();
   }
-}).listen(8080, function() {
-  console.log('Listening for requests');
+}).listen(PORT, function() {
+  console.log('Listening for requests on port ' + PORT);
 });
 ```
 
