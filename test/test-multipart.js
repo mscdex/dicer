@@ -27,8 +27,7 @@ var FIXTURES_ROOT = __dirname + '/fixtures/';
 ].forEach(function(v) {
   var fd, n = 0, buffer = new Buffer(v.chsize),
       errPrefix = '[' + v.what + ']: ',
-      state = { done: false, parts: [], preamble: undefined },
-      part = { body: undefined, bodylen: 0, header: undefined };
+      state = { done: false, parts: [], preamble: undefined };
 
   fd = fs.openSync(FIXTURES_ROOT + v.source + '/original', 'r')
 
@@ -50,13 +49,14 @@ var FIXTURES_ROOT = __dirname + '/fixtures/';
       preamble.bodylen += data.length;
     });
     p.on('end', function() {
-      if (part.body)
-        part.body = Buffer.concat(part.body, part.bodylen);
-      if (part.body || preamble.header)
+      if (preamble.body)
+        preamble.body = Buffer.concat(preamble.body, preamble.bodylen);
+      if (preamble.body || preamble.header)
         state.preamble = preamble;
     });
   });
   dicer.on('part', function(p) {
+    var part = { body: undefined, bodylen: 0, header: undefined };
     p.on('header', function(h) {
       part.header = h;
     });
@@ -75,7 +75,6 @@ var FIXTURES_ROOT = __dirname + '/fixtures/';
       if (part.body)
         part.body = Buffer.concat(part.body, part.bodylen);
       state.parts.push(part);
-      part = { body: undefined, bodylen: 0, header: undefined };
     });
   })
   .on('end', function() {
@@ -92,56 +91,60 @@ var FIXTURES_ROOT = __dirname + '/fixtures/';
   }
   fs.closeSync(fd);
 
-  assert(state.done, errPrefix + 'Parser did not finish');
+  // nextTick is required since changing over to streams2, which defers 'end'
+  // event emitting for readable streams until the next tick
+  process.nextTick(function() {
+    assert(state.done, errPrefix + 'Parser did not finish');
 
-  var preamble = undefined;
-  if (fs.existsSync(FIXTURES_ROOT + v.source + '/preamble')) {
-    var prebody = fs.readFileSync(FIXTURES_ROOT + v.source + '/preamble');
-    if (prebody.length) {
-      preamble = {
-        body: prebody,
-        bodylen: prebody.length,
-        header: undefined
-      };
+    var preamble;
+    if (fs.existsSync(FIXTURES_ROOT + v.source + '/preamble')) {
+      var prebody = fs.readFileSync(FIXTURES_ROOT + v.source + '/preamble');
+      if (prebody.length) {
+        preamble = {
+          body: prebody,
+          bodylen: prebody.length,
+          header: undefined
+        };
+      }
     }
-  }
-  if (fs.existsSync(FIXTURES_ROOT + v.source + '/preamble.header')) {
+    if (fs.existsSync(FIXTURES_ROOT + v.source + '/preamble.header')) {
 
-    var prehead = JSON.parse(fs.readFileSync(FIXTURES_ROOT + v.source
-                                             + '/preamble.header', 'binary'));
-    if (!preamble) {
-      preamble = {
-        body: undefined,
-        bodylen: 0,
-        header: prehead
-      };
+      var prehead = JSON.parse(fs.readFileSync(FIXTURES_ROOT + v.source
+                                               + '/preamble.header', 'binary'));
+      if (!preamble) {
+        preamble = {
+          body: undefined,
+          bodylen: 0,
+          header: prehead
+        };
+      }
     }
-  }
 
-  assert.deepEqual(state.preamble, preamble, errPrefix
-                   + 'Preamble mismatch:\nActual:' + inspect(state.preamble)
-                   + '\nExpected: ' + inspect(preamble));
+    assert.deepEqual(state.preamble, preamble, errPrefix
+                     + 'Preamble mismatch:\nActual:' + inspect(state.preamble)
+                     + '\nExpected: ' + inspect(preamble));
 
-  assert.equal(state.parts.length, v.nparts,
-               errPrefix + 'Part count mismatch:\nActual: ' + state.parts.length
-               + '\nExpected: ' + v.nparts);
+    assert.equal(state.parts.length, v.nparts,
+                 errPrefix + 'Part count mismatch:\nActual: ' + state.parts.length
+                 + '\nExpected: ' + v.nparts);
 
-  for (var i = 0, header, body; i < v.nparts; ++i) {
-    body = fs.readFileSync(FIXTURES_ROOT + v.source + '/part' + (i+1));
-    if (body.length === 0)
-      body = undefined;
-    assert.deepEqual(state.parts[i].body, body,
-                     errPrefix + 'Part #' + (i+1) + ' body mismatch');
-    header = undefined;
-    if (fs.existsSync(FIXTURES_ROOT + v.source + '/part' + (i+1) + '.header')) {
-      header = fs.readFileSync(FIXTURES_ROOT + v.source
-                               + '/part' + (i+1) + '.header', 'binary');
-      header = JSON.parse(header);
+    for (var i = 0, header, body; i < v.nparts; ++i) {
+      body = fs.readFileSync(FIXTURES_ROOT + v.source + '/part' + (i+1));
+      if (body.length === 0)
+        body = undefined;
+      assert.deepEqual(state.parts[i].body, body,
+                       errPrefix + 'Part #' + (i+1) + ' body mismatch');
+      header = undefined;
+      if (fs.existsSync(FIXTURES_ROOT + v.source + '/part' + (i+1) + '.header')) {
+        header = fs.readFileSync(FIXTURES_ROOT + v.source
+                                 + '/part' + (i+1) + '.header', 'binary');
+        header = JSON.parse(header);
+      }
+      assert.deepEqual(state.parts[i].header, header,
+                       errPrefix + 'Part #' + (i+1)
+                       + ' parsed header mismatch:\nActual: '
+                       + inspect(state.parts[i].header)
+                       + '\nExpected: ' + inspect(header));
     }
-    assert.deepEqual(state.parts[i].header, header,
-                     errPrefix + 'Part #' + (i+1)
-                     + ' parsed header mismatch:\nActual: '
-                     + inspect(state.parts[i].header)
-                     + '\nExpected: ' + inspect(header));
-  }
+  });
 });
