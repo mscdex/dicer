@@ -64,7 +64,7 @@ http.createServer(function(req, res) {
     d.on('end', function() {
       console.log('End of parts');
       res.writeHead(200);
-      res.end();
+      res.end('Form submission successful!');
     });
     req.pipe(d);
   } else if (req.method === 'GET' && req.url === '/') {
