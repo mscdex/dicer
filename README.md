@@ -4,6 +4,8 @@ Description
 
 A very fast streaming multipart parser for node.js.
 
+Benchmarks can be found [here](https://github.com/mscdex/dicer/wiki/Benchmarks).
+
 
 Requirements
 ============
