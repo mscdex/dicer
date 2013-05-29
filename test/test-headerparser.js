@@ -3,6 +3,9 @@ var assert = require('assert'),
 
 var DCRLF = '\r\n\r\n';
 
+var MAXED_BUFFER = new Buffer(128 * 1024);
+MAXED_BUFFER.fill(0x41); // 'A'
+
 [
   { source: DCRLF,
     expected: {},
@@ -26,6 +29,18 @@ var DCRLF = '\r\n\r\n';
     expected: {'content-type': [''], 'foo': ['']},
     what: 'Empty values'
   },
+  { source: MAXED_BUFFER.toString('ascii') + DCRLF,
+    expected: {},
+    what: 'Max header size (single chunk)'
+  },
+  { source: ['ABCDEFGHIJ', MAXED_BUFFER.toString('ascii'), DCRLF],
+    expected: {},
+    what: 'Max header size (multiple chunks #1)'
+  },
+  { source: [MAXED_BUFFER.toString('ascii'), MAXED_BUFFER.toString('ascii'), DCRLF],
+    expected: {},
+    what: 'Max header size (multiple chunk #2)'
+  },
 ].forEach(function(v) {
   var parser = new HeaderParser(), fired = false;
   var errPrefix = '[' + v.what + ']: ';
@@ -34,6 +49,10 @@ var DCRLF = '\r\n\r\n';
     fired = true;
     assert.deepEqual(header, v.expected, errPrefix + 'Parsed result mismatch');
   });
-  parser.push(v.source);
+  if (!Array.isArray(v.source))
+    v.source = [v.source];
+  v.source.forEach(function(s) {
+    parser.push(s);
+  });
   assert(fired, errPrefix + 'Did not receive header from parser');
 });
