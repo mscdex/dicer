@@ -1,5 +1,5 @@
 { "name": "dicer",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "author": "Brian White <mscdex@mscdex.net>",
   "description": "A very fast streaming multipart parser for node.js",
   "main": "./lib/Dicer",
