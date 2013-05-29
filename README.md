@@ -108,6 +108,8 @@ Dicer methods
 
     * **headerFirst** - _boolean_ - If true, preamble header parsing will be performed first.
 
+    * **maxHeaderPairs** - _integer_ - The maximum number of header key=>value pairs to parse **Default:** 2000 (same as node's http).
+
 * **setBoundary**(< _string_ >boundary) - _(void)_ - Sets the boundary to use for parsing and performs some initialization needed for parsing. You should only need to use this if you set `headerFirst` to true in the constructor and are parsing the boundary from the preamble header.
 
 
