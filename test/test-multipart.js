@@ -29,7 +29,7 @@ var FIXTURES_ROOT = __dirname + '/fixtures/';
       errPrefix = '[' + v.what + ']: ',
       state = { done: false, parts: [], preamble: undefined };
 
-  fd = fs.openSync(FIXTURES_ROOT + v.source + '/original', 'r')
+  fd = fs.openSync(FIXTURES_ROOT + v.source + '/original', 'r');
 
   var dicer = new Dicer(v.opts);
   dicer.on('preamble', function(p) {
