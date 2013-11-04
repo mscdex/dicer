@@ -5,7 +5,9 @@ var assert = require('assert'),
 
 var FIXTURES_ROOT = __dirname + '/fixtures/';
 
-[
+var t = 0;
+
+var tests = [
   { source: 'nested',
     opts: { boundary: 'AaB03x' },
     chsize: 32,
@@ -24,16 +26,25 @@ var FIXTURES_ROOT = __dirname + '/fixtures/';
     nparts: 2,
     what: 'One nested multipart with preceding header'
   },
-].forEach(function(v) {
-  var fd, n = 0, buffer = new Buffer(v.chsize),
+];
+
+function next() {
+  if (t === tests.length)
+    return;
+  var v = tests[t],
+      fd,
+      n = 0,
+      buffer = new Buffer(v.chsize),
       errPrefix = '[' + v.what + ']: ',
       state = { done: false, parts: [], preamble: undefined };
 
   fd = fs.openSync(FIXTURES_ROOT + v.source + '/original', 'r');
 
   var dicer = new Dicer(v.opts);
+
   dicer.on('preamble', function(p) {
     var preamble = { body: undefined, bodylen: 0, header: undefined };
+
     p.on('header', function(h) {
       preamble.header = h;
     });
@@ -57,6 +68,7 @@ var FIXTURES_ROOT = __dirname + '/fixtures/';
   });
   dicer.on('part', function(p) {
     var part = { body: undefined, bodylen: 0, header: undefined };
+
     p.on('header', function(h) {
       part.header = h;
     });
@@ -78,24 +90,6 @@ var FIXTURES_ROOT = __dirname + '/fixtures/';
     });
   })
   .on('end', function() {
-    state.done = true;
-  });
-
-  while (true) {
-    n = fs.readSync(fd, buffer, 0, buffer.length, null);
-    if (n === 0) {
-      dicer.end();
-      break;
-    }
-    dicer.write(n === buffer.length ? buffer : buffer.slice(0, n));
-  }
-  fs.closeSync(fd);
-
-  // nextTick is required since changing over to streams2, which defers 'end'
-  // event emitting for readable streams until the next tick
-  process.nextTick(function() {
-    assert(state.done, errPrefix + 'Parser did not finish');
-
     var preamble;
     if (fs.existsSync(FIXTURES_ROOT + v.source + '/preamble')) {
       var prebody = fs.readFileSync(FIXTURES_ROOT + v.source + '/preamble');
@@ -108,7 +102,6 @@ var FIXTURES_ROOT = __dirname + '/fixtures/';
       }
     }
     if (fs.existsSync(FIXTURES_ROOT + v.source + '/preamble.header')) {
-
       var prehead = JSON.parse(fs.readFileSync(FIXTURES_ROOT + v.source
                                                + '/preamble.header', 'binary'));
       if (!preamble) {
@@ -146,5 +139,22 @@ var FIXTURES_ROOT = __dirname + '/fixtures/';
                        + inspect(state.parts[i].header)
                        + '\nExpected: ' + inspect(header));
     }
+    ++t;
+    next();
   });
+
+  while (true) {
+    n = fs.readSync(fd, buffer, 0, buffer.length, null);
+    if (n === 0) {
+      dicer.end();
+      break;
+    }
+    dicer.write(n === buffer.length ? buffer : buffer.slice(0, n));
+  }
+  fs.closeSync(fd);
+}
+next();
+
+process.on('exit', function() {
+  assert(t === tests.length, 'Only ran ' + t + '/' + tests.length + ' tests');
 });
