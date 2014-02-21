@@ -63,7 +63,7 @@ http.createServer(function(req, res) {
         console.log('End of part\n');
       });
     });
-    d.on('end', function() {
+    d.on('finish', function() {
       console.log('End of parts');
       res.writeHead(200);
       res.end('Form submission successful!');
