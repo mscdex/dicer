@@ -1,10 +1,13 @@
 var assert = require('assert'),
-    HeaderParser = require('../lib/HeaderParser');
+    path = require('path');
 
-var DCRLF = '\r\n\r\n';
+var HeaderParser = require('../lib/HeaderParser');
 
-var MAXED_BUFFER = new Buffer(128 * 1024);
+var DCRLF = '\r\n\r\n',
+    MAXED_BUFFER = new Buffer(128 * 1024);
 MAXED_BUFFER.fill(0x41); // 'A'
+
+var group = path.basename(__filename, '.js') + '/';
 
 [
   { source: DCRLF,
@@ -42,17 +45,24 @@ MAXED_BUFFER.fill(0x41); // 'A'
     what: 'Max header size (multiple chunk #2)'
   },
 ].forEach(function(v) {
-  var parser = new HeaderParser(), fired = false;
-  var errPrefix = '[' + v.what + ']: ';
+  var parser = new HeaderParser(),
+      fired = false;
+
   parser.on('header', function(header) {
-    assert(!fired, errPrefix + 'Header event fired more than once');
+    assert(!fired, makeMsg(v.what, 'Header event fired more than once'));
     fired = true;
-    assert.deepEqual(header, v.expected, errPrefix + 'Parsed result mismatch');
+    assert.deepEqual(header,
+                     v.expected,
+                     makeMsg(v.what, 'Parsed result mismatch'));
   });
   if (!Array.isArray(v.source))
     v.source = [v.source];
   v.source.forEach(function(s) {
     parser.push(s);
   });
-  assert(fired, errPrefix + 'Did not receive header from parser');
+  assert(fired, makeMsg(v.what, 'Did not receive header from parser'));
 });
+
+function makeMsg(what, msg) {
+  return '[' + group + what + ']: ' + msg;
+}
