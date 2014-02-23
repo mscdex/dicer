@@ -14,7 +14,6 @@ var tests = [
     opts: { boundary: '----WebKitFormBoundaryWLHCs9qmcJJoyjKR' },
     chsize: 16,
     nparts: 0,
-    //events: ['preamble', 'part'],
     what: 'No preamble or part listeners'
   },
 ];
