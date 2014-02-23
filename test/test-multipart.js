@@ -241,5 +241,6 @@ function makeMsg(what, msg) {
 }
 
 process.on('exit', function() {
-  assert(t === tests.length, 'Only ran ' + t + '/' + tests.length + ' tests');
+  assert(t === tests.length,
+         makeMsg('_exit', 'Only ran ' + t + '/' + tests.length + ' tests'));
 });
