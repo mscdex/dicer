@@ -90,7 +90,7 @@ _Dicer_ is a _WritableStream_
 Dicer (special) events
 ----------------------
 
-* **end**() - Emitted when all parts have been parsed.
+* **finish**() - Emitted when all parts have been parsed and the Dicer instance has been ended.
 
 * **part**(< _PartStream_ >stream) - Emitted when a new part has been found.
 
