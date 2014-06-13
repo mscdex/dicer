@@ -52,7 +52,7 @@ function next() {
       fixtureBase = FIXTURES_ROOT + v.source,
       n = 0,
       buffer = new Buffer(v.chsize),
-      state = { done: false, parts: [], preamble: undefined };
+      state = { parts: [], preamble: undefined };
 
   var dicer = new Dicer(v.opts),
       error,
