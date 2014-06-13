@@ -120,7 +120,7 @@ function next() {
     if (v.dicerError)
       assert(error !== undefined, makeMsg(v.what, 'Expected error'));
     else
-      assert(error === undefined, makeMsg(v.what, 'Unexpected error'));
+      assert(error === undefined, makeMsg(v.what, 'Unexpected error: ' + error));
 
     var preamble;
     if (fs.existsSync(fixtureBase + '/preamble')) {
