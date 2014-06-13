@@ -50,12 +50,9 @@ function next() {
     return;
   var v = tests[t],
       fixtureBase = FIXTURES_ROOT + v.source,
-      fd,
       n = 0,
       buffer = new Buffer(v.chsize),
       state = { done: false, parts: [], preamble: undefined };
-
-  fd = fs.openSync(fixtureBase + '/original', 'r');
 
   var dicer = new Dicer(v.opts),
       error,
@@ -102,10 +99,6 @@ function next() {
     p.on('header', function(h) {
       part.header = h;
     }).on('data', function(data) {
-      // make a copy because we are using readSync which re-uses a buffer ...
-      var copy = new Buffer(data.length);
-      data.copy(copy);
-      data = copy;
       if (!part.body)
         part.body = [ data ];
       else
@@ -224,15 +217,7 @@ function next() {
     next();
   });
 
-  while (true) {
-    n = fs.readSync(fd, buffer, 0, buffer.length, null);
-    if (n === 0) {
-      dicer.end();
-      break;
-    }
-    dicer.write(n === buffer.length ? buffer : buffer.slice(0, n));
-  }
-  fs.closeSync(fd);
+  fs.createReadStream(fixtureBase + '/original').pipe(dicer);
 }
 next();
 
