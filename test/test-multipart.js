@@ -43,6 +43,13 @@ var tests = [
     nparts: 2,
     what: 'One nested multipart with preceding header'
   },
+  { source: 'nested-full',
+    opts: { headerFirst: true },
+    chsize: 32,
+    nparts: 2,
+    setBoundary: 'AaB03x',
+    what: 'One nested multipart with preceding header, using setBoundary'
+  },
 ];
 
 function next() {
@@ -69,6 +76,8 @@ function next() {
 
     p.on('header', function(h) {
       preamble.header = h;
+      if (v.setBoundary)
+        dicer.setBoundary(v.setBoundary);
     }).on('data', function(data) {
       // make a copy because we are using readSync which re-uses a buffer ...
       var copy = new Buffer(data.length);
