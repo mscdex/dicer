@@ -20,13 +20,13 @@ var firedEnd    = false;
 var firedFinish = false;
 
 var dicer = new Dicer({boundary: boundary});
-dicer.on('part',   partListener);
+dicer.on('part', partListener);
 dicer.on('finish', finishListener);
 dicer.write(writePart+writeSep);
 
 function partListener(partReadStream) {
   partReadStream.on('data', function(){});
-  partReadStream.on('end',  partEndListener)
+  partReadStream.on('end', partEndListener);
 }
 function partEndListener() {
   firedEnd = true;
@@ -54,22 +54,22 @@ var dicer2 = null;
 
 function test2() {
   dicer2 = new Dicer({boundary: boundary});
-  dicer2.on('part',   pausePartListener);
+  dicer2.on('part', pausePartListener);
   dicer2.on('finish', pauseFinish);
   dicer2.write(writePart+writeSep, 'utf8', pausePartCallback);
   setImmediate(pauseAfterWrite);
 }
 function pausePartListener(partReadStream) {
   partReadStream.on('data', function(){});
-  partReadStream.on('end',  function(){})
+  partReadStream.on('end', function(){});
   var realPush = partReadStream.push;
   partReadStream.push = function fakePush() {
-	realPush.apply(partReadStream, arguments);
+    realPush.apply(partReadStream, arguments);
     if (!isPausePush)
       return true;
     isPausePush = false;
     return false;
-  }
+  };
 }
 function pauseAfterWrite() {
   dicer2.end(writeEnd);
