@@ -4,13 +4,12 @@
   "description": "A very fast streaming multipart parser for node.js",
   "main": "./lib/Dicer",
   "dependencies": {
-    "streamsearch": "0.1.2",
-    "readable-stream": "1.1.x"
+    "streamsearch": "0.1.2"
   },
   "scripts": {
     "test": "node test/test.js"
   },
-  "engines": { "node": ">=0.8.0" },
+  "engines": { "node": ">=0.9.4" },
   "keywords": [ "parser", "parse", "parsing", "multipart", "form-data", "streaming" ],
   "licenses": [ { "type": "MIT", "url": "http://github.com/mscdex/dicer/raw/master/LICENSE" } ],
   "repository" : { "type": "git", "url": "http://github.com/mscdex/dicer.git" }
