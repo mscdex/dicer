@@ -32,13 +32,13 @@ var Dicer = require('dicer');
 
     // quick and dirty way to parse multipart boundary
 var RE_BOUNDARY = /^multipart\/.+?(?:; boundary=(?:(?:"(.+)")|(?:([^\s]+))))$/i,
-    HTML = new Buffer('<html><head></head><body>\
-                       <form method="POST" enctype="multipart/form-data">\
-                         <input type="text" name="textfield"><br />\
-                         <input type="file" name="filefield"><br />\
-                         <input type="submit">\
-                       </form>\
-                       </body></html>'),
+    HTML = Buffer.from('<html><head></head><body>\
+                        <form method="POST" enctype="multipart/form-data">\
+                          <input type="text" name="textfield"><br />\
+                          <input type="file" name="filefield"><br />\
+                          <input type="submit">\
+                        </form>\
+                        </body></html>'),
     PORT = 8080;
 
 http.createServer(function(req, res) {

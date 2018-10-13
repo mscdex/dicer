@@ -1,10 +1,11 @@
 var assert = require('assert'),
+    Buffer = require('safer-buffer').Buffer,
     path = require('path');
 
 var HeaderParser = require('../lib/HeaderParser');
 
 var DCRLF = '\r\n\r\n',
-    MAXED_BUFFER = new Buffer(128 * 1024);
+    MAXED_BUFFER = Buffer.alloc(128 * 1024);
 MAXED_BUFFER.fill(0x41); // 'A'
 
 var group = path.basename(__filename, '.js') + '/';

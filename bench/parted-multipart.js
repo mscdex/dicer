@@ -6,6 +6,7 @@
 
 var fs = require('fs')
   , path = require('path')
+  , Buffer = require('safer-buffer').Buffer
   , EventEmitter = require('events').EventEmitter
   , StringDecoder = require('string_decoder').StringDecoder
   , set = require('qs').set
@@ -42,7 +43,7 @@ var Parser = function(type, options) {
     return this._error('No boundary key found.');
   }
 
-  this.key = new Buffer('\r\n--' + key);
+  this.key = Buffer.from('\r\n--' + key);
 
   this._key = {};
   each.call(this.key, function(ch) {
@@ -53,7 +54,7 @@ var Parser = function(type, options) {
   this.pending = 0;
   this.written = 0;
   this.writtenDisk = 0;
-  this.buff = new Buffer(200);
+  this.buff = Buffer.alloc(200);
 
   this.preamble = true;
   this.epilogue = false;

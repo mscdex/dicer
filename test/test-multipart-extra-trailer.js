@@ -1,5 +1,6 @@
 var Dicer = require('..');
 var assert = require('assert'),
+    Buffer = require('safer-buffer').Buffer,
     fs = require('fs'),
     path = require('path'),
     inspect = require('util').inspect;
@@ -25,7 +26,7 @@ function next() {
       fixtureBase = FIXTURES_ROOT + v.source,
       fd,
       n = 0,
-      buffer = new Buffer(v.chsize),
+      buffer = Buffer.alloc(v.chsize),
       state = { parts: [] };
 
   fd = fs.openSync(fixtureBase + '/original', 'r');
@@ -47,7 +48,7 @@ function next() {
       part.header = h;
     }).on('data', function(data) {
       // make a copy because we are using readSync which re-uses a buffer ...
-      var copy = new Buffer(data.length);
+      var copy = Buffer.alloc(data.length);
       data.copy(copy);
       data = copy;
       if (!part.body)
