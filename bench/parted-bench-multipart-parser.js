@@ -49,7 +49,7 @@ function createMultipartBuffer(boundary, size) {
       + 'content-disposition: form-data; name="field1"\r\n'
       + '\r\n'
     , tail = '\r\n--'+boundary+'--\r\n'
-    , buffer = new Buffer(size);
+    , buffer = Buffer.allocUnsafe(size);
 
   buffer.write(head, 'ascii', 0);
   buffer.write(tail, 'ascii', buffer.length - tail.length);

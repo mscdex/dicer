@@ -10,7 +10,7 @@
   "scripts": {
     "test": "node test/test.js"
   },
-  "engines": { "node": ">=0.8.0" },
+  "engines": { "node": ">=4.5.0" },
   "keywords": [ "parser", "parse", "parsing", "multipart", "form-data", "streaming" ],
   "licenses": [ { "type": "MIT", "url": "http://github.com/mscdex/dicer/raw/master/LICENSE" } ],
   "repository" : { "type": "git", "url": "http://github.com/mscdex/dicer.git" }

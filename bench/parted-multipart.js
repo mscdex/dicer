@@ -42,7 +42,7 @@ var Parser = function(type, options) {
     return this._error('No boundary key found.');
   }
 
-  this.key = new Buffer('\r\n--' + key);
+  this.key = Buffer.allocUnsafe('\r\n--' + key);
 
   this._key = {};
   each.call(this.key, function(ch) {
@@ -53,7 +53,7 @@ var Parser = function(type, options) {
   this.pending = 0;
   this.written = 0;
   this.writtenDisk = 0;
-  this.buff = new Buffer(200);
+  this.buff = Buffer.allocUnsafe(200);
 
   this.preamble = true;
   this.epilogue = false;

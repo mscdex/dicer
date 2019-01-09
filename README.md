@@ -10,7 +10,7 @@ Benchmarks can be found [here](https://github.com/mscdex/dicer/wiki/Benchmarks).
 Requirements
 ============
 
-* [node.js](http://nodejs.org/) -- v0.8.0 or newer
+* [node.js](http://nodejs.org/) -- v4.5.0 or newer
 
 
 Install
@@ -32,13 +32,13 @@ var Dicer = require('dicer');
 
     // quick and dirty way to parse multipart boundary
 var RE_BOUNDARY = /^multipart\/.+?(?:; boundary=(?:(?:"(.+)")|(?:([^\s]+))))$/i,
-    HTML = new Buffer('<html><head></head><body>\
-                       <form method="POST" enctype="multipart/form-data">\
+    HTML = Buffer.from('<html><head></head><body>\
+                        <form method="POST" enctype="multipart/form-data">\
                          <input type="text" name="textfield"><br />\
                          <input type="file" name="filefield"><br />\
                          <input type="submit">\
-                       </form>\
-                       </body></html>'),
+                        </form>\
+                        </body></html>'),
     PORT = 8080;
 
 http.createServer(function(req, res) {

@@ -25,7 +25,7 @@ function next() {
       fixtureBase = FIXTURES_ROOT + v.source,
       fd,
       n = 0,
-      buffer = new Buffer(v.chsize),
+      buffer = Buffer.allocUnsafe(v.chsize),
       state = { parts: [] };
 
   fd = fs.openSync(fixtureBase + '/original', 'r');
@@ -47,7 +47,7 @@ function next() {
       part.header = h;
     }).on('data', function(data) {
       // make a copy because we are using readSync which re-uses a buffer ...
-      var copy = new Buffer(data.length);
+      var copy = Buffer.allocUnsafe(data.length);
       data.copy(copy);
       data = copy;
       if (!part.body)
