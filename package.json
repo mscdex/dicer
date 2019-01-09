@@ -4,8 +4,7 @@
   "description": "A very fast streaming multipart parser for node.js",
   "main": "./lib/Dicer",
   "dependencies": {
-    "streamsearch": "0.1.2",
-    "readable-stream": "1.1.x"
+    "streamsearch": "0.1.2"
   },
   "scripts": {
     "test": "node test/test.js"
