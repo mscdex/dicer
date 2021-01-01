@@ -3,6 +3,9 @@
   "author": "Brian White <mscdex@mscdex.net>",
   "description": "A very fast streaming multipart parser for node.js",
   "main": "./lib/Dicer",
+  "files":[
+    "lib"
+  ],
   "dependencies": {
     "streamsearch": "0.1.2"
   },
