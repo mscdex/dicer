@@ -41,7 +41,7 @@ const HTML = Buffer.from(`
       <input type="submit">
     </form>
   </body></html>
-');
+`);
 const PORT = 8080;
 
 http.createServer((req, res) => {
