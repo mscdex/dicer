@@ -1,87 +1,97 @@
-var Dicer = require('..');
-var assert = require('assert');
+'use strict';
 
-var CRLF     = '\r\n';
-var boundary = 'boundary';
+const assert = require('assert');
 
-var writeSep = '--' + boundary;
+const Dicer = require('..');
 
-var writePart = [
+const CRLF = '\r\n';
+const boundary = 'boundary';
+
+const writeSep = `--${boundary}`;
+
+const writePart = [
   writeSep,
   'Content-Type:   text/plain',
   'Content-Length: 0'
-  ].join(CRLF)
-  + CRLF + CRLF
-  + 'some data' + CRLF;
+].join(CRLF) + `${CRLF}${CRLF}some data${CRLF}`;
 
-var writeEnd = '--' + CRLF;
+const writeEnd = `--${CRLF}`;
 
-var firedEnd    = false;
-var firedFinish = false;
+let firedEnd = false;
+let firedFinish = false;
 
-var dicer = new Dicer({boundary: boundary});
+const dicer = new Dicer({ boundary });
 dicer.on('part', partListener);
 dicer.on('finish', finishListener);
-dicer.write(writePart+writeSep);
+dicer.write(writePart + writeSep);
 
 function partListener(partReadStream) {
-  partReadStream.on('data', function(){});
+  partReadStream.on('data', () => {});
   partReadStream.on('end', partEndListener);
 }
+
 function partEndListener() {
   firedEnd = true;
   setImmediate(afterEnd);
 }
+
 function afterEnd() {
   dicer.end(writeEnd);
   setImmediate(afterWrite);
 }
+
 function finishListener() {
   assert(firedEnd, 'Failed to end before finishing');
   firedFinish = true;
   test2();
 }
+
 function afterWrite() {
   assert(firedFinish, 'Failed to finish');
 }
 
-var isPausePush = true;
+let isPausePush = true;
 
-var firedPauseCallback = false;
-var firedPauseFinish = false;
+let firedPauseCallback = false;
+let firedPauseFinish = false;
 
-var dicer2 = null;
+let dicer2 = null;
 
 function test2() {
-  dicer2 = new Dicer({boundary: boundary});
+  dicer2 = new Dicer({ boundary });
   dicer2.on('part', pausePartListener);
   dicer2.on('finish', pauseFinish);
-  dicer2.write(writePart+writeSep, 'utf8', pausePartCallback);
+  dicer2.write(writePart + writeSep, 'utf8', pausePartCallback);
   setImmediate(pauseAfterWrite);
 }
+
 function pausePartListener(partReadStream) {
-  partReadStream.on('data', function(){});
-  partReadStream.on('end', function(){});
-  var realPush = partReadStream.push;
-  partReadStream.push = function fakePush() {
-    realPush.apply(partReadStream, arguments);
+  partReadStream.on('data', () => {});
+  partReadStream.on('end', () => {});
+  const realPush = partReadStream.push;
+  partReadStream.push = (...args) => {
+    realPush.apply(partReadStream, args);
     if (!isPausePush)
       return true;
     isPausePush = false;
     return false;
   };
 }
+
 function pauseAfterWrite() {
   dicer2.end(writeEnd);
   setImmediate(pauseAfterEnd);
 }
+
 function pauseAfterEnd() {
   assert(firedPauseCallback, 'Failed to call callback after pause');
   assert(firedPauseFinish, 'Failed to finish after pause');
 }
+
 function pauseFinish() {
   firedPauseFinish = true;
 }
+
 function pausePartCallback() {
   firedPauseCallback = true;
 }
