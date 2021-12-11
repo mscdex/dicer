@@ -10,7 +10,7 @@ Benchmarks can be found [here](https://github.com/mscdex/dicer/wiki/Benchmarks).
 Requirements
 ============
 
-* [node.js](http://nodejs.org/) -- v4.5.0 or newer
+* [node.js](http://nodejs.org/) -- v10.0.0 or newer
 
 
 Install
@@ -24,46 +24,50 @@ Examples
 
 * Parse an HTTP form upload
 
-```javascript
-var inspect = require('util').inspect,
-    http = require('http');
+```js
+const { inspect } = require('util');
+const http = require('http');
 
-var Dicer = require('dicer');
+const Dicer = require('dicer');
 
-    // quick and dirty way to parse multipart boundary
-var RE_BOUNDARY = /^multipart\/.+?(?:; boundary=(?:(?:"(.+)")|(?:([^\s]+))))$/i,
-    HTML = Buffer.from('<html><head></head><body>\
-                        <form method="POST" enctype="multipart/form-data">\
-                         <input type="text" name="textfield"><br />\
-                         <input type="file" name="filefield"><br />\
-                         <input type="submit">\
-                        </form>\
-                        </body></html>'),
-    PORT = 8080;
+// Quick and dirty way to parse multipart boundary
+const RE_BOUNDARY =
+  /^multipart\/.+?(?:; boundary=(?:(?:"(.+)")|(?:([^\s]+))))$/i;
+const HTML = Buffer.from(`
+  <html><head></head><body>
+    <form method="POST" enctype="multipart/form-data">
+      <input type="text" name="textfield"><br />
+      <input type="file" name="filefield"><br />
+      <input type="submit">
+    </form>
+  </body></html>
+');
+const PORT = 8080;
 
-http.createServer(function(req, res) {
-  var m;
+http.createServer((req, res) => {
+  let m;
   if (req.method === 'POST'
       && req.headers['content-type']
       && (m = RE_BOUNDARY.exec(req.headers['content-type']))) {
-    var d = new Dicer({ boundary: m[1] || m[2] });
+    const d = new Dicer({ boundary: m[1] || m[2] });
 
-    d.on('part', function(p) {
+    d.on('part', (p) => {
       console.log('New part!');
-      p.on('header', function(header) {
-        for (var h in header) {
-          console.log('Part header: k: ' + inspect(h)
-                      + ', v: ' + inspect(header[h]));
+      p.on('header', (header) => {
+        for (const h in header) {
+          console.log(
+            `Part header: k: ${inspect(h)}, v: ${inspect(header[h])}`
+          );
         }
       });
-      p.on('data', function(data) {
-        console.log('Part data: ' + inspect(data.toString()));
+      p.on('data', (data) => {
+        console.log(`Part data: ${inspect(data.toString())}`);
       });
-      p.on('end', function() {
+      p.on('end', () => {
         console.log('End of part\n');
       });
     });
-    d.on('finish', function() {
+    d.on('finish', () => {
       console.log('End of parts');
       res.writeHead(200);
       res.end('Form submission successful!');
@@ -76,8 +80,8 @@ http.createServer(function(req, res) {
     res.writeHead(404);
     res.end();
   }
-}).listen(PORT, function() {
-  console.log('Listening for requests on port ' + PORT);
+}).listen(PORT, () => {
+  console.log(`Listening for requests on port ${PORT}`);
 });
 ```
 
@@ -85,7 +89,7 @@ http.createServer(function(req, res) {
 API
 ===
 
-_Dicer_ is a _WritableStream_
+_Dicer_ is a _Writable_ stream
 
 Dicer (special) events
 ----------------------
@@ -114,7 +118,7 @@ Dicer methods
 
 
 
-_PartStream_ is a _ReadableStream_
+_PartStream_ is a _Readable_ stream
 
 PartStream (special) events
 ---------------------------
