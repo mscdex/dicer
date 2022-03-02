@@ -84,6 +84,13 @@ function next() {
       header: undefined
     };
 
+    const onPreambleEnd = () => {
+      if (preamble.body)
+        preamble.body = Buffer.concat(preamble.body, preamble.bodylen);
+      if (preamble.body || preamble.header)
+        state.preamble = preamble;
+    };
+
     p.on('header', (h) => {
       preamble.header = h;
       if (v.setBoundary)
@@ -100,12 +107,8 @@ function next() {
       preamble.bodylen += data.length;
     }).on('error', (err) => {
       preamble.error = err;
-    }).on('end', () => {
-      if (preamble.body)
-        preamble.body = Buffer.concat(preamble.body, preamble.bodylen);
-      if (preamble.body || preamble.header)
-        state.preamble = preamble;
-    });
+      onPreambleEnd();
+    }).on('end', onPreambleEnd);
   });
   dicer.on('part', (p) => {
     const part = {
@@ -113,6 +116,12 @@ function next() {
       bodylen: 0,
       error: undefined,
       header: undefined
+    };
+
+    const onPartEnd = () => {
+      if (part.body)
+        part.body = Buffer.concat(part.body, part.bodylen);
+      state.parts.push(part);
     };
 
     p.on('header', (h) => {
@@ -126,15 +135,23 @@ function next() {
     }).on('error', (err) => {
       part.error = err;
       ++partErrors;
-    }).on('end', () => {
-      if (part.body)
-        part.body = Buffer.concat(part.body, part.bodylen);
-      state.parts.push(part);
-    });
-  }).on('error', (err) => {
-    error = err;
-  }).on('finish', () => {
-    assert(finishes++ === 0, makeMsg(v.what, 'finish emitted multiple times'));
+      onPartEnd();
+    }).on('end', onPartEnd);
+  }).on('error', onFinish).on('finish', onFinish);
+
+  function onFinish(err) {
+    if (err) {
+      assert(
+        error === undefined,
+        makeMsg(v.what, 'error emitted multiple times')
+      );
+      error = err;
+    }
+
+    // Node <= 12 emits both 'error' and 'end', while Node > 14 emits only
+    // 'error'.
+    if (finishes++ > 0)
+      return;
 
     if (v.dicerError) {
       assert(error !== undefined, makeMsg(v.what, 'Expected error'));
@@ -242,7 +259,7 @@ function next() {
     }
     ++t;
     next();
-  });
+  }
 
   fs.createReadStream(fixtureBase + '/original').pipe(dicer);
 }
